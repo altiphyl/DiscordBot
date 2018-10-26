@@ -1,10 +1,12 @@
 // Load up the discord.js library
 const Discord = require("discord.js");
+const ytdl = require("ytdl-core");
 
 // This is your client. Some people call it `bot`, some people call it `self`, 
 // some might call it `cootchie`. Either way, when you see `client.something`, or `bot.something`,
 // this is what we're refering to. Your client.
 const client = new Discord.Client();
+
 
 // Here we load the config.json file that contains our token and our prefix values. 
 const config = require("./config.json");
@@ -17,6 +19,7 @@ client.on("ready", () => {
   // Example of changing the bot's playing game to something useful. `client.user` is what the
   // docs refer to as the "ClientUser".
   client.user.setActivity(`Serving ${client.guilds.size} servers`);
+  client.guilds.get("426823066945847297").channels.get("427876044419366912").send("Hi! How are you doing? Dont forget to use '+' to talk to me!");
 });
 
 client.on("guildCreate", guild => {
@@ -69,6 +72,31 @@ client.on("message", async message => {
     message.channel.send(sayMessage);
   }
   
+  if(command === "playyt") {
+	
+	var url = args.join(" ");
+  
+    console.log('Got a song request!');
+    const voiceChannel = message.member.voiceChannel;
+    if (!voiceChannel) {
+      return message.reply('Please be in a voice channel first!');
+    }
+    voiceChannel.join()
+      .then(connection => {
+        const stream = ytdl(url, { filter: 'audioonly' });
+        const dispatcher = connection.playStream(stream);
+        dispatcher.on('end', () => {
+          voiceChannel.leave();
+        });
+      });
+  }
+
+  if(command === "stop") {
+	const voiceChannel = message.member.voiceChannel; 
+	voiceChannel.leave();
+	message.delete().catch(O_o=>{}); 
+}
+
   if(command === "kick") {
     // This command must be limited to mods and admins. In this example we just hardcode the role names.
     // Please read on Array.some() to understand this bit: 
@@ -117,7 +145,7 @@ client.on("message", async message => {
     message.reply(`${member.user.tag} has been banned by ${message.author.tag} because: ${reason}`);
   }
   
-  if(command === "purge") {
+  if(command === "deltext") {
     // This command removes all messages from all users in the channel, up to 100.
     
     // get the delete count, as an actual number.
